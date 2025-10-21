@@ -202,7 +202,7 @@ This MCP server provides the following tools:
 1. Clone or download this repository
 2. Create a virtual environment:
    ```bash
-   python -m venv .venv
+   py -m venv .venv
    ```
 
 3. Activate the virtual environment:
@@ -219,6 +219,151 @@ This MCP server provides the following tools:
    ```bash
    pip install -r requirements.txt
    ```
+
+## Testing Locally
+
+### Quick Test
+
+Run the simple test script to verify everything is working:
+
+```bash
+py test_simple.py
+```
+
+This will check:
+- ✅ Dependencies are installed correctly
+- ✅ Server module imports without errors
+- ✅ Server starts without crashing
+
+### Manual Testing
+
+#### Method 1: Run the Server Directly
+
+1. **Start the server:**
+   ```bash
+   .venv\Scripts\python.exe -m mcp_hello_server.main
+   ```
+
+2. **The server will start and wait for JSON-RPC messages on stdin.** You'll see:
+   ```
+   INFO:mcp_hello_server:Starting MCP Hello Server...
+   ```
+
+3. **Test with JSON-RPC messages** (you can copy-paste these):
+
+   **Initialize the server:**
+   ```json
+   {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}
+   ```
+
+   **Send initialized notification:**
+   ```json
+   {"jsonrpc": "2.0", "method": "notifications/initialized"}
+   ```
+
+   **List available tools:**
+   ```json
+   {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
+   ```
+
+   **Call the hello tool:**
+   ```json
+   {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "hello", "arguments": {"name": "Test User"}}}
+   ```
+
+   **Call the echo tool:**
+   ```json
+   {"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "echo", "arguments": {"message": "Hello, MCP!"}}}
+   ```
+
+4. **Stop the server:** Press `Ctrl+C`
+
+#### Method 2: Test with MCP Client
+
+1. **Configure an MCP client** (like Claude Desktop) with the configuration in `mcp_config.json`:
+   ```json
+   {
+     "mcpServers": {
+       "mcp-hello-server": {
+         "command": ".venv\\Scripts\\python.exe",
+         "args": ["-m", "mcp_hello_server.main"],
+         "env": {}
+       }
+     }
+   }
+   ```
+
+2. **The client will automatically:**
+   - Start the server process
+   - Send initialization messages
+   - Discover available tools
+   - Allow you to call tools through the client interface
+
+#### Method 3: Interactive Testing
+
+For a more interactive experience, you can use the test script:
+
+```bash
+py test_interactive.py
+```
+
+This tests the server functions directly without the stdio transport.
+
+### Expected Responses
+
+When testing manually, you should see responses like:
+
+**Tools list response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "name": "hello",
+        "description": "Say hello to someone",
+        "inputSchema": {...}
+      },
+      {
+        "name": "echo", 
+        "description": "Echo back the provided message",
+        "inputSchema": {...}
+      }
+    ]
+  }
+}
+```
+
+**Hello tool response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Hello, Test User! Welcome to the MCP Hello Server!"
+      }
+    ]
+  }
+}
+```
+
+### Troubleshooting
+
+**Server exits immediately:**
+- This is normal! MCP servers wait for JSON-RPC messages on stdin
+- The server is working if you see the startup log message
+
+**Import errors:**
+- Make sure you activated the virtual environment: `.venv\Scripts\activate`
+- Verify dependencies are installed: `pip list | grep mcp`
+
+**Permission errors:**
+- On Windows, make sure you're using `.venv\Scripts\python.exe` instead of just `python`
+- Check that the virtual environment was created successfully
 
 ## Usage
 
