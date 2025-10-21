@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "mcp-hello-server": {
+      "command": "py",
+      "args": ["-m", "mcp_hello_server.main"],
+      "env": {}
+    }
+  }
+}
